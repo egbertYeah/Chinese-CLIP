@@ -77,11 +77,13 @@ if __name__ == "__main__":
                 idx = 0
                 while idx < len(image_ids):
                     img_feats_tensor = torch.from_numpy(image_feats_array[idx : min(idx + args.eval_batch_size, len(image_ids))]).cuda() # [batch_size, feature_dim]
+                    # inner product
                     batch_scores = text_feat_tensor @ img_feats_tensor.t() # [1, batch_size]
                     for image_id, score in zip(image_ids[idx : min(idx + args.eval_batch_size, len(image_ids))], batch_scores.squeeze(0).tolist()):
                         score_tuples.append((image_id, score))
                     idx += args.eval_batch_size
-                top_k_predictions = sorted(score_tuples, key=lambda x:x[1], reverse=True)[:args.top_k]
+                top_k_predictions = sorted(score_tuples, key=lambda x:x[1], reverse=True)[:args.top_k]      # 选择得分最高的topK
+                
                 fout.write("{}\n".format(json.dumps({"text_id": text_id, "image_ids": [entry[0] for entry in top_k_predictions]})))
     
     print("Top-{} predictions are saved in {}".format(args.top_k, args.output))
